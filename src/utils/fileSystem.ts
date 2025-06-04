@@ -322,3 +322,11 @@ export const updateRecentProjects = (project: { fileName: string; filePath: stri
   // 儲存更新後的列表
   saveRecentProjects(recentProjects);
 };
+
+// 取得最新的快照（依建立時間排序）
+export const getLatestSnapshot = (): { id: string; name: string; projectId: string; createdAt: string; type: string } | null => {
+  const list = getSnapshotsList();
+  if (list.length === 0) return null;
+  const sorted = [...list].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  return sorted[0];
+};

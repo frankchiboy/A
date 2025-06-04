@@ -6,6 +6,12 @@ import {
   saveAutoSnapshot,
   updateRecentProjects,
   loadSnapshot,
+  getSnapshotsList,
+  deleteSnapshot,
+  loadProjectFromFile,
+  saveProjectToFile,
+  getLatestSnapshot,
+  createProjectPackage,
 } from '../utils/fileSystem';
 import { transition } from '../utils/stateMachine';
 
@@ -29,7 +35,12 @@ interface ProjectContextType {
   updateRisk: (risk: Risk) => void;
   deleteRisk: (id: string) => void;
   saveProject: () => void;
+  exportProjectFile: (fileName: string) => Promise<void>;
+  openProjectFile: (file: File) => Promise<void>;
   restoreSnapshot: (name: string) => Promise<void>;
+  listSnapshots: () => { id: string; name: string; projectId: string; createdAt: string; type: string }[];
+  removeSnapshot: (name: string) => void;
+  initializeFromLatestSnapshot: () => Promise<void>;
   projectState: ProjectState;
   setProjectState: (state: ProjectState) => void;
   undoStack: any[];
@@ -369,6 +380,30 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
     });
   }, [currentProject]);
 
+  // 匯出專案為 .mpproj
+  const exportProjectFile = useCallback(async (fileName: string) => {
+    if (!currentProject) return;
+    await saveProjectToFile(createProjectPackage(currentProject), fileName);
+    setProjectState(prev => transition(prev, 'save'));
+  }, [currentProject]);
+
+  // 讀取 .mpproj 檔案
+  const openProjectFile = useCallback(async (file: File) => {
+    const pkg = await loadProjectFromFile(file);
+    setCurrentProject(pkg.project);
+    setProjects(prev => {
+      const other = prev.filter(p => p.id !== pkg.project.id);
+      return [...other, pkg.project];
+    });
+    setProjectState(prev => transition(prev, 'save'));
+    updateRecentProjects({
+      fileName: pkg.project.name,
+      filePath: file.name,
+      projectUUID: pkg.project.id,
+      isTemporary: false,
+    });
+  }, []);
+
   // 從快照還原專案
   const restoreSnapshot = useCallback(async (name: string) => {
     const pkg = await loadSnapshot(name);
@@ -386,6 +421,23 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
       isTemporary: false,
     });
   }, []);
+
+  const listSnapshots = useCallback(() => {
+    return getSnapshotsList();
+  }, []);
+
+  const removeSnapshot = useCallback((name: string) => {
+    deleteSnapshot(name);
+  }, []);
+
+  const initializeFromLatestSnapshot = useCallback(async () => {
+    const latest = getLatestSnapshot();
+    if (latest) {
+      await restoreSnapshot(latest.name);
+    } else {
+      createProject();
+    }
+  }, [restoreSnapshot, createProject]);
 
   // Undo/Redo 相關函數
   const pushUndo = useCallback((item: any) => {
@@ -548,7 +600,12 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
       updateRisk,
       deleteRisk,
       saveProject,
+      exportProjectFile,
+      openProjectFile,
       restoreSnapshot,
+      listSnapshots,
+      removeSnapshot,
+      initializeFromLatestSnapshot,
       projectState,
       setProjectState,
       undoStack,

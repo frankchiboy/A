@@ -321,3 +321,52 @@ export const getCriticalPath = (tasks: Task[]): string[] => {
   
   return criticalPathTasks;
 };
+
+// 計算儀表板指標
+export const getDashboardMetrics = (project: Project): DashboardMetrics => {
+  const completion = project.tasks.length
+    ? Math.round(
+        (project.tasks.filter(t => t.status === 'completed').length /
+          project.tasks.length) *
+          100
+      )
+    : 0;
+
+  const upcomingMilestones = project.milestones.filter(
+    m => m.status === 'upcoming'
+  ).length;
+
+  const avgUtilization = project.resources.length
+    ? Math.round(
+        project.resources.reduce((sum, r) => sum + r.utilization, 0) /
+          project.resources.length
+      )
+    : 0;
+
+  const budgetPct = project.budget.total
+    ? Math.round((project.budget.spent / project.budget.total) * 100)
+    : 0;
+
+  const budgetStatus: DashboardMetrics['budgetStatus'] =
+    budgetPct > 100
+      ? { percentage: budgetPct, status: 'over' }
+      : budgetPct > 75
+        ? { percentage: budgetPct, status: 'on-track' }
+        : { percentage: budgetPct, status: 'under' };
+
+  const risksCount = project.risks.reduce(
+    (acc, risk) => {
+      acc[risk.impact]++;
+      return acc;
+    },
+    { low: 0, medium: 0, high: 0 }
+  );
+
+  return {
+    taskCompletion: completion,
+    upcomingMilestones,
+    resourceUtilization: avgUtilization,
+    budgetStatus,
+    risksCount,
+  };
+};

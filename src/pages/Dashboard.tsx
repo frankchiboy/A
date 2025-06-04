@@ -1,6 +1,7 @@
 import React from 'react';
 import { ProjectSummary } from '../components/dashboard/ProjectSummary';
 import { TaskProgress } from '../components/dashboard/TaskProgress';
+import KeyMetrics from '../components/dashboard/KeyMetrics';
 import { ResourceAllocation } from '../components/dashboard/ResourceAllocation';
 import { useProject } from '../context/ProjectContext';
 import { Bell, Calendar, Layers, TrendingUp, Anchor, ArrowRight } from 'lucide-react';
@@ -48,6 +49,7 @@ export const Dashboard: React.FC = () => {
       </div>
       
       <ProjectSummary />
+      <KeyMetrics />
       
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
         <div className="lg:col-span-8">

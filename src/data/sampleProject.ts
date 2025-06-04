@@ -399,6 +399,33 @@ export const sampleProject: Project = {
       updatedAt: "2025-01-05T14:45:00Z"
     }
   ],
+  costs: [
+    {
+      id: "cost-001",
+      taskId: "task-004",
+      amount: 10000,
+      category: "人事",
+      currency: "USD",
+      date: "2025-04-15",
+      invoiceId: "INV-2025-04A",
+      status: "pending",
+      note: "Initial payment"
+    }
+  ],
+  risks: [
+    {
+      id: "risk-001",
+      name: "Schedule Delay",
+      description: "Potential delay due to resource shortage",
+      probability: "medium",
+      impact: "high",
+      status: "identified",
+      mitigation: "Allocate backup resources",
+      owner: "res-006",
+      createdAt: "2025-01-05T12:00:00Z",
+      updatedAt: "2025-01-05T12:00:00Z"
+    }
+  ],
   budget: {
     total: 150000,
     spent: 67500,

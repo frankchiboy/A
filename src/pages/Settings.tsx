@@ -3,7 +3,7 @@ import { useTheme } from '../context/ThemeContext';
 import { Settings as SettingsIcon, Users, PaintBucket, Bell, Shield, Database, Globe, Moon, Sun, Monitor } from 'lucide-react';
 
 export const Settings: React.FC = () => {
-  const { theme, setTheme, isDarkMode } = useTheme();
+  const { theme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState('appearance');
   
   const tabs = [

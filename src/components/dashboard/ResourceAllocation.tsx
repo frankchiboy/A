@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users, TrendingUp, ArrowRight, Briefcase } from 'lucide-react';
+import { Users, ArrowRight, Briefcase } from 'lucide-react';
 import { useProject } from '../../context/ProjectContext';
 
 export const ResourceAllocation: React.FC = () => {
@@ -14,8 +14,6 @@ export const ResourceAllocation: React.FC = () => {
   
   // 找出利用率最高和最低的資源
   const sortedByUtilization = [...currentProject.resources].sort((a, b) => b.utilization - a.utilization);
-  const highestUtilized = sortedByUtilization[0];
-  const lowestUtilized = sortedByUtilization[sortedByUtilization.length - 1];
   
   // 依角色分組資源
   const resourcesByRole = currentProject.resources.reduce((acc: Record<string, number>, resource) => {
@@ -27,12 +25,6 @@ export const ResourceAllocation: React.FC = () => {
     return acc;
   }, {});
   
-  // 獲取團隊資訊
-  const getTeamName = (teamId?: string) => {
-    if (!teamId) return '未分配';
-    const team = currentProject.teams.find(t => t.id === teamId);
-    return team ? team.name : '未分配';
-  };
 
   return (
     <div className="card mb-8 overflow-hidden">

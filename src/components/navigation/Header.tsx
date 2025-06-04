@@ -16,6 +16,9 @@ export const Header: React.FC<HeaderProps> = ({ currentView }) => {
     gantt: '甘特圖',
     tasks: '任務',
     resources: '資源',
+    costs: '成本',
+    risks: '風險',
+    snapshots: '備份',
     reports: '報告',
     settings: '設定',
   };

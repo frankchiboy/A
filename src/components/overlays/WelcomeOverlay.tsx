@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { X, AlertCircle, CheckCircle, ArrowRight, Anchor, DivideIcon as LucideIcon } from 'lucide-react';
-import { useProject } from '../../context/ProjectContext';
 
 interface WelcomeOverlayProps {
   onClose: () => void;
@@ -16,7 +15,6 @@ interface StepInfo {
 
 const WelcomeOverlay: React.FC<WelcomeOverlayProps> = ({ onClose }) => {
   const [currentStep, setCurrentStep] = useState(0);
-  const { currentProject } = useProject();
   
   const steps: StepInfo[] = [
     {
@@ -163,11 +161,11 @@ interface FeatureProps {
   description: string;
 }
 
-const LayoutDashboard = (props: any) => <LucideIcon {...props} />;
-const GanttChart = (props: any) => <LucideIcon {...props} />;
-const CheckSquare = (props: any) => <LucideIcon {...props} />;
-const Users = (props: any) => <LucideIcon {...props} />;
-const BarChart4 = (props: any) => <LucideIcon {...props} />;
+const LayoutDashboard = (props: React.SVGProps<SVGSVGElement>) => <LucideIcon {...props} />;
+const GanttChart = (props: React.SVGProps<SVGSVGElement>) => <LucideIcon {...props} />;
+const CheckSquare = (props: React.SVGProps<SVGSVGElement>) => <LucideIcon {...props} />;
+const Users = (props: React.SVGProps<SVGSVGElement>) => <LucideIcon {...props} />;
+const BarChart4 = (props: React.SVGProps<SVGSVGElement>) => <LucideIcon {...props} />;
 
 const Feature: React.FC<FeatureProps> = ({ isActive, icon, title, description }) => (
   <div className={`flex items-start transition-all ${isActive ? 'opacity-100' : 'opacity-40'}`}>

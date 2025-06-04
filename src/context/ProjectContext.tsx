@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
-import { Project, Task, Resource, ProjectState, CostRecord, Risk } from '../types/projectTypes';
+import { Project, Task, Resource, ProjectState, CostRecord, Risk, UndoItem } from '../types/projectTypes';
 import { sampleProject } from '../data/sampleProject';
 import { createEmptyProject, calculateProjectProgress } from '../utils/projectUtils';
 import {
@@ -43,9 +43,9 @@ interface ProjectContextType {
   initializeFromLatestSnapshot: () => Promise<void>;
   projectState: ProjectState;
   setProjectState: (state: ProjectState) => void;
-  undoStack: any[];
-  redoStack: any[];
-  pushUndo: (item: any) => void;
+  undoStack: UndoItem[];
+  redoStack: UndoItem[];
+  pushUndo: (item: UndoItem) => void;
   undo: () => void;
   redo: () => void;
 }
@@ -57,8 +57,8 @@ const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 export const ProjectProvider = ({ children }: { children: ReactNode }) => {
   const [projects, setProjects] = useState<Project[]>([sampleProject]);
   const [currentProject, setCurrentProject] = useState<Project | null>(sampleProject);
-  const [undoStack, setUndoStack] = useState<any[]>([]);
-  const [redoStack, setRedoStack] = useState<any[]>([]);
+  const [undoStack, setUndoStack] = useState<UndoItem[]>([]);
+  const [redoStack, setRedoStack] = useState<UndoItem[]>([]);
   const [projectState, setProjectState] = useState<ProjectState>({
     currentState: 'UNTITLED',
     hasUnsavedChanges: false,
@@ -171,7 +171,7 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
     };
     
     updateProject(updatedProject);
-  }, [currentProject, updateProject]);
+  }, [currentProject, updateProject, pushUndo]);
 
   // 更新任務
   const updateTask = useCallback((updatedTask: Task) => {
@@ -194,7 +194,7 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
     };
     
     updateProject(updatedProject);
-  }, [currentProject, updateProject]);
+  }, [currentProject, updateProject, pushUndo]);
 
   // 刪除任務
   const deleteTask = useCallback((taskId: string) => {
@@ -217,7 +217,7 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
     };
     
     updateProject(updatedProject);
-  }, [currentProject, updateProject]);
+  }, [currentProject, updateProject, pushUndo]);
 
   // 新增資源
   const addResource = useCallback((resource: Resource) => {
@@ -237,7 +237,7 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
     };
     
     updateProject(updatedProject);
-  }, [currentProject, updateProject]);
+  }, [currentProject, updateProject, pushUndo]);
 
   // 更新資源
   const updateResource = useCallback((updatedResource: Resource) => {
@@ -260,7 +260,7 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
     };
     
     updateProject(updatedProject);
-  }, [currentProject, updateProject]);
+  }, [currentProject, updateProject, pushUndo]);
 
   // 刪除資源
   const deleteResource = useCallback((resourceId: string) => {
@@ -283,7 +283,7 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
     };
     
     updateProject(updatedProject);
-  }, [currentProject, updateProject]);
+  }, [currentProject, updateProject, pushUndo]);
 
   // 新增成本紀錄
   const addCost = useCallback((cost: CostRecord) => {
@@ -440,7 +440,7 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
   }, [restoreSnapshot, createProject]);
 
   // Undo/Redo 相關函數
-  const pushUndo = useCallback((item: any) => {
+  const pushUndo = useCallback((item: UndoItem) => {
     setUndoStack(prev => [...prev.slice(0, 49), item]); // 限制堆疊大小為 50
     setRedoStack([]); // 清空 redo 堆疊
   }, []);
@@ -619,6 +619,7 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useProject = (): ProjectContextType => {
   const context = useContext(ProjectContext);
   if (!context) {

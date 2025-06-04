@@ -38,8 +38,7 @@ export const createTask = (
   projectId: string,
   name: string,
   startDate: string,
-  endDate: string,
-  parentId?: string
+  endDate: string
 ): Task => {
   const startDateObj = new Date(startDate);
   const endDateObj = new Date(endDate);

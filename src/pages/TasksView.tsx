@@ -110,11 +110,6 @@ export const TasksView: React.FC = () => {
     }
   };
   
-  // 獲取資源名稱
-  const getResourceName = (resourceId: string) => {
-    const resource = currentProject.resources.find(r => r.id === resourceId);
-    return resource ? resource.name : '未分配';
-  };
   
   return (
     <div className="flex flex-col h-full">

@@ -161,3 +161,10 @@ export interface ProjectState {
   autosaveTimer: 'active' | 'inactive';
   openedFrom: 'manual' | 'recovery' | 'template' | null;
 }
+
+export interface UndoItem {
+  type: string;
+  targetId: string;
+  beforeState: unknown;
+  afterState: unknown;
+}

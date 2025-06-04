@@ -38,6 +38,14 @@ export interface Attachment {
   uploadedAt: string;
 }
 
+export interface SnapshotEntry {
+  id: string;
+  name: string;
+  projectId: string;
+  createdAt: string;
+  type: string;
+}
+
 // 獲取當前平台
 const getPlatform = (): 'Windows' | 'macOS' | 'Linux' | 'Web' => {
   const userAgent = window.navigator.userAgent.toLowerCase();
@@ -224,7 +232,7 @@ export const saveAutoSnapshot = async (projectPackage: ProjectPackage): Promise<
 };
 
 // 獲取快照列表
-export const getSnapshotsList = (): { id: string; name: string; projectId: string; createdAt: string; type: string }[] => {
+export const getSnapshotsList = (): SnapshotEntry[] => {
   const snapshotsIndexKey = 'project_snap_index';
   return JSON.parse(localStorage.getItem(snapshotsIndexKey) || '[]');
 };
@@ -273,7 +281,7 @@ export const deleteSnapshot = (snapshotName: string): void => {
     const snapshotsIndex = JSON.parse(localStorage.getItem(snapshotsIndexKey) || '[]');
     
     // 從索引中移除
-    const updatedIndex = snapshotsIndex.filter((snap: any) => snap.name !== snapshotName);
+    const updatedIndex = (snapshotsIndex as SnapshotEntry[]).filter((snap: SnapshotEntry) => snap.name !== snapshotName);
     localStorage.setItem(snapshotsIndexKey, JSON.stringify(updatedIndex));
     
     // 從 localStorage 中移除快照資料
@@ -324,7 +332,7 @@ export const updateRecentProjects = (project: { fileName: string; filePath: stri
 };
 
 // 取得最新的快照（依建立時間排序）
-export const getLatestSnapshot = (): { id: string; name: string; projectId: string; createdAt: string; type: string } | null => {
+export const getLatestSnapshot = (): SnapshotEntry | null => {
   const list = getSnapshotsList();
   if (list.length === 0) return null;
   const sorted = [...list].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());

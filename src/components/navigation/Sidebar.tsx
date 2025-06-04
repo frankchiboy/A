@@ -20,7 +20,7 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView }) => {
   const [expanded, setExpanded] = React.useState(true);
-  const { currentProject, projects } = useProject();
+  const { currentProject } = useProject();
 
   const navItems = [
     { id: 'dashboard', label: '儀表板', icon: <LayoutDashboard size={20} /> },

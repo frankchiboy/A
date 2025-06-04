@@ -3,7 +3,7 @@ import { ProjectSummary } from '../components/dashboard/ProjectSummary';
 import { TaskProgress } from '../components/dashboard/TaskProgress';
 import { ResourceAllocation } from '../components/dashboard/ResourceAllocation';
 import { useProject } from '../context/ProjectContext';
-import { Grid3X3, Award, Bell, Calendar, Layers, TrendingUp, Anchor, ArrowRight } from 'lucide-react';
+import { Bell, Calendar, Layers, TrendingUp, Anchor, ArrowRight } from 'lucide-react';
 
 export const Dashboard: React.FC = () => {
   const { currentProject } = useProject();

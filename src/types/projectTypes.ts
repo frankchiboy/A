@@ -131,8 +131,16 @@ export interface DashboardMetrics {
   };
 }
 
+export type ProjectStateName =
+  | 'UNINITIALIZED'
+  | 'UNTITLED'
+  | 'EDITING'
+  | 'DIRTY'
+  | 'SAVED'
+  | 'CLOSING';
+
 export interface ProjectState {
-  currentState: 'UNINITIALIZED' | 'UNTITLED' | 'EDITING' | 'DIRTY' | 'SAVED' | 'CLOSING';
+  currentState: ProjectStateName;
   hasUnsavedChanges: boolean;
   isUntitled: boolean;
   lastModified: string;

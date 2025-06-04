@@ -1,19 +1,5 @@
-export type ProjectStateName =
-  | 'UNINITIALIZED'
-  | 'UNTITLED'
-  | 'EDITING'
-  | 'DIRTY'
-  | 'SAVED'
-  | 'CLOSING';
+import type { ProjectState, ProjectStateName } from '../types/projectTypes';
 
-export interface ProjectState {
-  currentState: ProjectStateName;
-  hasUnsavedChanges: boolean;
-  isUntitled: boolean;
-  lastModified: string;
-  autosaveTimer: 'active' | 'inactive';
-  openedFrom: 'manual' | 'recovery' | 'template' | null;
-}
 
 export type ProjectAction =
   | 'initialize'

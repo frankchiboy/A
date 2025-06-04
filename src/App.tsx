@@ -8,6 +8,8 @@ const Dashboard = lazy(() => import('./pages/Dashboard').then(module => ({ defau
 const GanttView = lazy(() => import('./pages/GanttView').then(module => ({ default: module.GanttView })));
 const TasksView = lazy(() => import('./pages/TasksView').then(module => ({ default: module.TasksView })));
 const ResourcesView = lazy(() => import('./pages/ResourcesView').then(module => ({ default: module.ResourcesView })));
+const CostsView = lazy(() => import('./pages/CostsView').then(module => ({ default: module.default })));
+const RisksView = lazy(() => import('./pages/RisksView').then(module => ({ default: module.default })));
 const ReportsView = lazy(() => import('./pages/ReportsView'));
 const Settings = lazy(() => import('./pages/Settings').then(module => ({ default: module.Settings })));
 const WelcomeOverlay = lazy(() => import('./components/overlays/WelcomeOverlay'));
@@ -26,6 +28,10 @@ function App() {
         return <TasksView />;
       case 'resources':
         return <ResourcesView />;
+      case 'costs':
+        return <CostsView />;
+      case 'risks':
+        return <RisksView />;
       case 'reports':
         return <ReportsView />;
       case 'settings':

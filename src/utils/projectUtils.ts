@@ -153,6 +153,33 @@ export const initializeProjectBudget = (total: number, currency: string = 'TWD')
   };
 };
 
+// 創建成本紀錄
+export const createCostRecord = (taskId: string): CostRecord => ({
+  id: uuidv4(),
+  taskId,
+  amount: 0,
+  category: '',
+  currency: 'TWD',
+  date: new Date().toISOString().split('T')[0],
+  invoiceId: '',
+  status: 'pending',
+  note: ''
+});
+
+// 創建風險紀錄
+export const createRisk = (name: string): Risk => ({
+  id: uuidv4(),
+  name,
+  description: '',
+  probability: 'low',
+  impact: 'low',
+  status: 'identified',
+  mitigation: '',
+  owner: '',
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString()
+});
+
 // 計算任務完成進度
 export const calculateProjectProgress = (tasks: Task[]): number => {
   if (tasks.length === 0) return 0;

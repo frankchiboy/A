@@ -2,7 +2,12 @@ import React, { createContext, useContext, useState, ReactNode, useEffect, useCa
 import { Project, Task, Resource, ProjectState } from '../types/projectTypes';
 import { sampleProject } from '../data/sampleProject';
 import { createEmptyProject, calculateProjectProgress } from '../utils/projectUtils';
-import { saveAutoSnapshot, updateRecentProjects } from '../utils/fileSystem';
+import {
+  saveAutoSnapshot,
+  updateRecentProjects,
+  loadSnapshot,
+} from '../utils/fileSystem';
+import { transition } from '../utils/stateMachine';
 
 interface ProjectContextType {
   currentProject: Project | null;
@@ -18,6 +23,7 @@ interface ProjectContextType {
   updateResource: (resource: Resource) => void;
   deleteResource: (resourceId: string) => void;
   saveProject: () => void;
+  restoreSnapshot: (name: string) => Promise<void>;
   projectState: ProjectState;
   setProjectState: (state: ProjectState) => void;
   undoStack: any[];
@@ -80,14 +86,7 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
     const newProject = createEmptyProject(name);
     setProjects(prev => [...prev, newProject]);
     setCurrentProject(newProject);
-    setProjectState({
-      currentState: 'UNTITLED',
-      hasUnsavedChanges: true,
-      isUntitled: true,
-      lastModified: new Date().toISOString(),
-      autosaveTimer: 'active',
-      openedFrom: 'manual'
-    });
+    setProjectState(prev => transition(prev, 'initialize'));
     
     // 清空 undo/redo 堆疊
     setUndoStack([]);
@@ -119,12 +118,7 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
     setCurrentProject(finalProject);
     
     // 更新狀態為已修改
-    setProjectState(prev => ({
-      ...prev,
-      currentState: 'DIRTY',
-      hasUnsavedChanges: true,
-      lastModified: now
-    }));
+    setProjectState(prev => transition(prev, 'edit'));
   }, []);
 
   // 刪除專案
@@ -298,12 +292,7 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
     });
     
     // 更新狀態為已儲存
-    setProjectState(prev => ({
-      ...prev,
-      currentState: 'SAVED',
-      hasUnsavedChanges: false,
-      lastModified: new Date().toISOString()
-    }));
+    setProjectState(prev => transition(prev, 'save'));
     
     // 清空 undo/redo 堆疊
     setUndoStack([]);
@@ -317,6 +306,24 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
       isTemporary: false
     });
   }, [currentProject]);
+
+  // 從快照還原專案
+  const restoreSnapshot = useCallback(async (name: string) => {
+    const pkg = await loadSnapshot(name);
+    if (!pkg) return;
+    setCurrentProject(pkg.project);
+    setProjects(prev => {
+      const other = prev.filter(p => p.id !== pkg.project.id);
+      return [...other, pkg.project];
+    });
+    setProjectState(prev => transition(prev, 'restoreSnapshot'));
+    updateRecentProjects({
+      fileName: pkg.project.name,
+      filePath: '',
+      projectUUID: pkg.project.id,
+      isTemporary: false,
+    });
+  }, []);
 
   // Undo/Redo 相關函數
   const pushUndo = useCallback((item: any) => {
@@ -473,6 +480,7 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
       updateResource,
       deleteResource,
       saveProject,
+      restoreSnapshot,
       projectState,
       setProjectState,
       undoStack,

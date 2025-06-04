@@ -1,0 +1,149 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-700 antialiased font-sans;
+  }
+}
+
+@layer utilities {
+  .shadow-soft {
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  }
+  .shadow-glow {
+    box-shadow: 0 0 25px rgba(0, 173, 159, 0.15);
+  }
+  
+  /* 添加必要的 navy 顏色定義 */
+  .text-navy-50 {
+    color: #f0f4f8;
+  }
+  .text-navy-100 {
+    color: #d9e2ec;
+  }
+  .text-navy-200 {
+    color: #bcccdc;
+  }
+  .text-navy-300 {
+    color: #9fb3c8;
+  }
+  .text-navy-400 {
+    color: #829ab1;
+  }
+  .text-navy-500 {
+    color: #627d98;
+  }
+  .text-navy-600 {
+    color: #486581;
+  }
+  .text-navy-700 {
+    color: #334e68;
+  }
+  .text-navy-800 {
+    color: #243b53;
+  }
+  .text-navy-900 {
+    color: #102a43;
+  }
+  
+  .bg-navy-50 {
+    background-color: #f0f4f8;
+  }
+  .bg-navy-100 {
+    background-color: #d9e2ec;
+  }
+  .bg-navy-200 {
+    background-color: #bcccdc;
+  }
+  .bg-navy-300 {
+    background-color: #9fb3c8;
+  }
+  .bg-navy-400 {
+    background-color: #829ab1;
+  }
+  .bg-navy-500 {
+    background-color: #627d98;
+  }
+  .bg-navy-600 {
+    background-color: #486581;
+  }
+  .bg-navy-700 {
+    background-color: #334e68;
+  }
+  .bg-navy-800 {
+    background-color: #243b53;
+  }
+  .bg-navy-900 {
+    background-color: #102a43;
+  }
+  
+  .border-navy-50 {
+    border-color: #f0f4f8;
+  }
+  .border-navy-100 {
+    border-color: #d9e2ec;
+  }
+  .border-navy-200 {
+    border-color: #bcccdc;
+  }
+  .border-navy-300 {
+    border-color: #9fb3c8;
+  }
+  .border-navy-400 {
+    border-color: #829ab1;
+  }
+  .border-navy-500 {
+    border-color: #627d98;
+  }
+  .border-navy-600 {
+    border-color: #486581;
+  }
+  .border-navy-700 {
+    border-color: #334e68;
+  }
+  .border-navy-800 {
+    border-color: #243b53;
+  }
+  .border-navy-900 {
+    border-color: #102a43;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-4 py-2 bg-teal-500 text-white rounded-full font-medium 
+           shadow-soft hover:bg-teal-600 transition-colors relative 
+           overflow-hidden;
+  }
+  
+  .btn-secondary {
+    @apply px-4 py-2 bg-white text-navy-700 border border-slate-100 rounded-full 
+           font-medium shadow-soft hover:border-navy-200 hover:bg-navy-50 transition-colors;
+  }
+  
+  .btn-outline {
+    @apply px-4 py-2 bg-transparent text-slate-600 border border-slate-200 rounded-full
+           font-medium hover:bg-slate-50 hover:border-slate-300 transition-colors;
+  }
+  
+  .card {
+    @apply bg-white rounded-2xl border-0 shadow-soft
+           hover:shadow-glow transition-all duration-300
+           relative overflow-hidden;
+  }
+  
+  .card-gradient {
+    background-image: linear-gradient(120deg, var(--tw-gradient-stops));
+    @apply from-white to-slate-50
+           rounded-2xl border-0 shadow-soft
+           hover:shadow-glow transition-all duration-300;
+  }
+  
+  .input {
+    @apply px-4 py-2 bg-white border border-slate-200 rounded-full
+           text-sm focus:outline-none focus:ring-2 focus:ring-teal-500
+           focus:border-teal-500 transition-colors;
+  }
+}

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useProject } from '../context/ProjectContext';
 import CostDialog from '../components/modals/CostDialog';
-import { Plus, Edit } from 'lucide-react';
+import { Plus, Edit, Download } from 'lucide-react';
+import { exportCostsToCSV } from '../utils/fileSystem';
 
 const CostsView: React.FC = () => {
   const { currentProject } = useProject();
@@ -19,12 +20,20 @@ const CostsView: React.FC = () => {
     <div className="p-6">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-semibold text-slate-800">成本紀錄</h1>
-        <button
-          onClick={openNew}
-          className="px-3 py-2 bg-teal-600 text-white rounded-lg text-sm flex items-center"
-        >
-          <Plus size={16} className="mr-1" /> 新增
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => exportCostsToCSV(currentProject.costs, currentProject.name + '_costs')}
+            className="px-3 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm flex items-center hover:bg-slate-200"
+          >
+            <Download size={16} className="mr-1" /> 匯出 CSV
+          </button>
+          <button
+            onClick={openNew}
+            className="px-3 py-2 bg-teal-600 text-white rounded-lg text-sm flex items-center"
+          >
+            <Plus size={16} className="mr-1" /> 新增
+          </button>
+        </div>
       </div>
       <table className="min-w-full bg-white rounded-xl shadow-sm overflow-hidden text-sm">
         <thead className="bg-slate-50">

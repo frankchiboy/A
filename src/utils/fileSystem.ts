@@ -338,3 +338,33 @@ export const getLatestSnapshot = (): SnapshotEntry | null => {
   const sorted = [...list].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   return sorted[0];
 };
+
+// 匯出成本紀錄為 CSV
+export const exportCostsToCSV = (costs: CostRecord[], fileName: string): void => {
+  const header = '日期,金額,類別,狀態,備註\n';
+  const rows = costs
+    .map(c => `${c.date},${c.amount},${c.category},${c.status},"${c.note.replace(/"/g, '""')}"`)
+    .join('\n');
+  const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8' });
+  saveAs(blob, `${fileName}.csv`);
+};
+
+// 匯出風險紀錄為 CSV
+export const exportRisksToCSV = (risks: Risk[], fileName: string): void => {
+  const header = 'ID,標題,描述,嚴重度,機率,狀態\n';
+  const rows = risks
+    .map(r => `${r.id},${r.name},"${r.description.replace(/"/g, '""')}",${r.impact},${r.probability},${r.status}`)
+    .join('\n');
+  const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8' });
+  saveAs(blob, `${fileName}.csv`);
+};
+
+// 匯出任務清單為 CSV
+export const exportTasksToCSV = (tasks: Task[], fileName: string): void => {
+  const header = 'ID,名稱,開始日期,結束日期,狀態,負責人\n';
+  const rows = tasks
+    .map(t => `${t.id},${t.name},${t.startDate},${t.endDate},${t.status},${t.assignedTo.join(';')}`)
+    .join('\n');
+  const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8' });
+  saveAs(blob, `${fileName}.csv`);
+};

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useProject } from '../context/ProjectContext';
-import { Calendar, Clock, Users, CheckSquare, List, Grid, Filter, Search, Plus, ArrowUpDown, Bookmark, MoreHorizontal, ChevronDown } from 'lucide-react';
+import { Calendar, Clock, Users, CheckSquare, List, Grid, Filter, Search, Plus, ArrowUpDown, Bookmark, MoreHorizontal, ChevronDown, Download } from 'lucide-react';
 import { Task } from '../types/projectTypes';
+import { exportTasksToCSV } from "../utils/fileSystem";
 
 export const TasksView: React.FC = () => {
   const { currentProject } = useProject();
@@ -133,6 +134,13 @@ export const TasksView: React.FC = () => {
               />
               <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
             </div>
+
+            <button
+              onClick={() => exportTasksToCSV(currentProject.tasks, currentProject.name + '_tasks')}
+              className="px-3 py-2 bg-slate-100 rounded-full text-sm text-slate-700 hover:bg-slate-200 flex items-center shadow-soft"
+            >
+              <Download size={14} className="mr-1.5" /> 匯出CSV
+            </button>
             
             <div className="flex items-center space-x-1 border border-slate-100 rounded-full overflow-hidden bg-white shadow-soft">
               <button

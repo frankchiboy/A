@@ -6,6 +6,7 @@ import {
   Users,
   Coins,
   AlertTriangle,
+  Archive,
   BarChart4,
   Settings,
   PlusCircle,
@@ -31,6 +32,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView })
     { id: 'resources', label: '資源', icon: <Users size={20} /> },
     { id: 'costs', label: '成本', icon: <Coins size={20} /> },
     { id: 'risks', label: '風險', icon: <AlertTriangle size={20} /> },
+    { id: 'snapshots', label: '備份', icon: <Archive size={20} /> },
     { id: 'reports', label: '報告', icon: <BarChart4 size={20} /> },
     { id: 'settings', label: '設定', icon: <Settings size={20} /> },
   ];

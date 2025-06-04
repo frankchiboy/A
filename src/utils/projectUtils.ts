@@ -19,6 +19,8 @@ export const createEmptyProject = (name: string = 'Untitled Project'): Project =
     resources: [],
     milestones: [],
     teams: [],
+    costs: [],
+    risks: [],
     budget: {
       total: 0,
       spent: 0,

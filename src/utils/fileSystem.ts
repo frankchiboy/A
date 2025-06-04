@@ -1,7 +1,7 @@
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { v4 as uuidv4 } from 'uuid';
-import { Project, Task, Resource, Milestone, Team, Budget } from '../types/projectTypes';
+import { Project, Task, Resource, Milestone, Team, Budget, CostRecord, Risk } from '../types/projectTypes';
 
 // 專案檔案結構類型
 export interface ProjectPackage {
@@ -11,6 +11,8 @@ export interface ProjectPackage {
   resources: Resource[];
   milestones: Milestone[];
   teams: Team[];
+  costs: CostRecord[];
+  risks: Risk[];
   budget: Budget;
   attachments: Attachment[];
 }
@@ -61,6 +63,8 @@ export const createProjectPackage = (project: Project): ProjectPackage => {
     resources: project.resources || [],
     milestones: project.milestones || [],
     teams: project.teams || [],
+    costs: project.costs || [],
+    risks: project.risks || [],
     budget: project.budget || {
       total: 0,
       spent: 0,
@@ -88,6 +92,8 @@ export const saveProjectToFile = async (projectPackage: ProjectPackage, fileName
     zip.file('milestones.json', JSON.stringify(projectPackage.milestones, null, 2));
     zip.file('teams.json', JSON.stringify(projectPackage.teams, null, 2));
     zip.file('budget.json', JSON.stringify(projectPackage.budget, null, 2));
+    zip.file('costs.json', JSON.stringify(projectPackage.costs, null, 2));
+    zip.file('risklog.json', JSON.stringify(projectPackage.risks, null, 2));
     
     // 附件資料夾
     const attachments = zip.folder('attachments');
@@ -125,6 +131,8 @@ export const loadProjectFromFile = async (file: File): Promise<ProjectPackage> =
     const milestonesJson = await zipContent.file('milestones.json')?.async('text') || '[]';
     const teamsJson = await zipContent.file('teams.json')?.async('text') || '[]';
     const budgetJson = await zipContent.file('budget.json')?.async('text') || '{}';
+    const costsJson = await zipContent.file('costs.json')?.async('text') || '[]';
+    const risksJson = await zipContent.file('risklog.json')?.async('text') || '[]';
     
     // 解析附件
     const attachments: Attachment[] = [];
@@ -158,6 +166,8 @@ export const loadProjectFromFile = async (file: File): Promise<ProjectPackage> =
       resources: JSON.parse(resourcesJson),
       milestones: JSON.parse(milestonesJson),
       teams: JSON.parse(teamsJson),
+      costs: JSON.parse(costsJson),
+      risks: JSON.parse(risksJson),
       budget: JSON.parse(budgetJson),
       attachments
     };
@@ -235,6 +245,8 @@ export const loadSnapshot = async (snapshotName: string): Promise<ProjectPackage
     const milestonesJson = await zip.file('milestones.json')?.async('text') || '[]';
     const teamsJson = await zip.file('teams.json')?.async('text') || '[]';
     const budgetJson = await zip.file('budget.json')?.async('text') || '{}';
+    const costsJson = await zip.file('costs.json')?.async('text') || '[]';
+    const risksJson = await zip.file('risklog.json')?.async('text') || '[]';
     
     return {
       manifest: JSON.parse(manifestJson),
@@ -243,6 +255,8 @@ export const loadSnapshot = async (snapshotName: string): Promise<ProjectPackage
       resources: JSON.parse(resourcesJson),
       milestones: JSON.parse(milestonesJson),
       teams: JSON.parse(teamsJson),
+      costs: JSON.parse(costsJson),
+      risks: JSON.parse(risksJson),
       budget: JSON.parse(budgetJson),
       attachments: []
     };

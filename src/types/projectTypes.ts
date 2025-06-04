@@ -10,6 +10,8 @@ export interface Project {
   resources: Resource[];
   milestones: Milestone[];
   teams: Team[];
+  costs: CostRecord[];
+  risks: Risk[];
   budget: Budget;
   createdAt: string;
   updatedAt: string;
@@ -91,6 +93,18 @@ export interface BudgetCategory {
   name: string;
   planned: number;
   actual: number;
+}
+
+export interface CostRecord {
+  id: string;
+  taskId: string;
+  amount: number;
+  category: string;
+  currency: string;
+  date: string;
+  invoiceId: string;
+  status: 'pending' | 'paid';
+  note: string;
 }
 
 export interface Attachment {

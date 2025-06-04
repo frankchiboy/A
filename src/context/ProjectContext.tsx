@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
-import { Project, Task, Resource, ProjectState } from '../types/projectTypes';
+import { Project, Task, Resource, ProjectState, CostRecord, Risk } from '../types/projectTypes';
 import { sampleProject } from '../data/sampleProject';
 import { createEmptyProject, calculateProjectProgress } from '../utils/projectUtils';
 import {
@@ -22,6 +22,12 @@ interface ProjectContextType {
   addResource: (resource: Resource) => void;
   updateResource: (resource: Resource) => void;
   deleteResource: (resourceId: string) => void;
+  addCost: (cost: CostRecord) => void;
+  updateCost: (cost: CostRecord) => void;
+  deleteCost: (id: string) => void;
+  addRisk: (risk: Risk) => void;
+  updateRisk: (risk: Risk) => void;
+  deleteRisk: (id: string) => void;
   saveProject: () => void;
   restoreSnapshot: (name: string) => Promise<void>;
   projectState: ProjectState;
@@ -268,6 +274,62 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
     updateProject(updatedProject);
   }, [currentProject, updateProject]);
 
+  // 新增成本紀錄
+  const addCost = useCallback((cost: CostRecord) => {
+    if (!currentProject) return;
+    const updatedProject = {
+      ...currentProject,
+      costs: [...currentProject.costs, cost]
+    };
+    updateProject(updatedProject);
+  }, [currentProject, updateProject]);
+
+  const updateCost = useCallback((cost: CostRecord) => {
+    if (!currentProject) return;
+    const updatedProject = {
+      ...currentProject,
+      costs: currentProject.costs.map(c => c.id === cost.id ? cost : c)
+    };
+    updateProject(updatedProject);
+  }, [currentProject, updateProject]);
+
+  const deleteCost = useCallback((id: string) => {
+    if (!currentProject) return;
+    const updatedProject = {
+      ...currentProject,
+      costs: currentProject.costs.filter(c => c.id !== id)
+    };
+    updateProject(updatedProject);
+  }, [currentProject, updateProject]);
+
+  // 風險紀錄
+  const addRisk = useCallback((risk: Risk) => {
+    if (!currentProject) return;
+    const updatedProject = {
+      ...currentProject,
+      risks: [...currentProject.risks, risk]
+    };
+    updateProject(updatedProject);
+  }, [currentProject, updateProject]);
+
+  const updateRisk = useCallback((risk: Risk) => {
+    if (!currentProject) return;
+    const updatedProject = {
+      ...currentProject,
+      risks: currentProject.risks.map(r => r.id === risk.id ? risk : r)
+    };
+    updateProject(updatedProject);
+  }, [currentProject, updateProject]);
+
+  const deleteRisk = useCallback((id: string) => {
+    if (!currentProject) return;
+    const updatedProject = {
+      ...currentProject,
+      risks: currentProject.risks.filter(r => r.id !== id)
+    };
+    updateProject(updatedProject);
+  }, [currentProject, updateProject]);
+
   // 儲存專案
   const saveProject = useCallback(() => {
     if (!currentProject) return;
@@ -479,6 +541,12 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
       addResource,
       updateResource,
       deleteResource,
+      addCost,
+      updateCost,
+      deleteCost,
+      addRisk,
+      updateRisk,
+      deleteRisk,
       saveProject,
       restoreSnapshot,
       projectState,

@@ -35,13 +35,6 @@ export const ResourcesView: React.FC = () => {
     return currentProject.tasks.filter(task => task.assignedTo.includes(resourceId)).length;
   };
   
-  // 獲取當前進行中的任務數量
-  const getCurrentTasksCount = (resourceId: string) => {
-    return currentProject.tasks.filter(task => 
-      task.assignedTo.includes(resourceId) && 
-      task.status === 'in-progress'
-    ).length;
-  };
   
   return (
     <div className="flex flex-col h-full">

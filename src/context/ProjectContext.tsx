@@ -1,8 +1,19 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
-import { Project, Task, Resource, ProjectState } from '../types/projectTypes';
+import { Project, Task, Resource, ProjectState, CostRecord, Risk, UndoItem } from '../types/projectTypes';
 import { sampleProject } from '../data/sampleProject';
 import { createEmptyProject, calculateProjectProgress } from '../utils/projectUtils';
-import { saveAutoSnapshot, updateRecentProjects } from '../utils/fileSystem';
+import {
+  saveAutoSnapshot,
+  updateRecentProjects,
+  loadSnapshot,
+  getSnapshotsList,
+  deleteSnapshot,
+  loadProjectFromFile,
+  saveProjectToFile,
+  getLatestSnapshot,
+  createProjectPackage,
+} from '../utils/fileSystem';
+import { transition } from '../utils/stateMachine';
 
 interface ProjectContextType {
   currentProject: Project | null;
@@ -17,12 +28,24 @@ interface ProjectContextType {
   addResource: (resource: Resource) => void;
   updateResource: (resource: Resource) => void;
   deleteResource: (resourceId: string) => void;
+  addCost: (cost: CostRecord) => void;
+  updateCost: (cost: CostRecord) => void;
+  deleteCost: (id: string) => void;
+  addRisk: (risk: Risk) => void;
+  updateRisk: (risk: Risk) => void;
+  deleteRisk: (id: string) => void;
   saveProject: () => void;
+  exportProjectFile: (fileName: string) => Promise<void>;
+  openProjectFile: (file: File) => Promise<void>;
+  restoreSnapshot: (name: string) => Promise<void>;
+  listSnapshots: () => { id: string; name: string; projectId: string; createdAt: string; type: string }[];
+  removeSnapshot: (name: string) => void;
+  initializeFromLatestSnapshot: () => Promise<void>;
   projectState: ProjectState;
   setProjectState: (state: ProjectState) => void;
-  undoStack: any[];
-  redoStack: any[];
-  pushUndo: (item: any) => void;
+  undoStack: UndoItem[];
+  redoStack: UndoItem[];
+  pushUndo: (item: UndoItem) => void;
   undo: () => void;
   redo: () => void;
 }
@@ -34,8 +57,8 @@ const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 export const ProjectProvider = ({ children }: { children: ReactNode }) => {
   const [projects, setProjects] = useState<Project[]>([sampleProject]);
   const [currentProject, setCurrentProject] = useState<Project | null>(sampleProject);
-  const [undoStack, setUndoStack] = useState<any[]>([]);
-  const [redoStack, setRedoStack] = useState<any[]>([]);
+  const [undoStack, setUndoStack] = useState<UndoItem[]>([]);
+  const [redoStack, setRedoStack] = useState<UndoItem[]>([]);
   const [projectState, setProjectState] = useState<ProjectState>({
     currentState: 'UNTITLED',
     hasUnsavedChanges: false,
@@ -80,14 +103,7 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
     const newProject = createEmptyProject(name);
     setProjects(prev => [...prev, newProject]);
     setCurrentProject(newProject);
-    setProjectState({
-      currentState: 'UNTITLED',
-      hasUnsavedChanges: true,
-      isUntitled: true,
-      lastModified: new Date().toISOString(),
-      autosaveTimer: 'active',
-      openedFrom: 'manual'
-    });
+    setProjectState(prev => transition(prev, 'initialize'));
     
     // 清空 undo/redo 堆疊
     setUndoStack([]);
@@ -119,12 +135,7 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
     setCurrentProject(finalProject);
     
     // 更新狀態為已修改
-    setProjectState(prev => ({
-      ...prev,
-      currentState: 'DIRTY',
-      hasUnsavedChanges: true,
-      lastModified: now
-    }));
+    setProjectState(prev => transition(prev, 'edit'));
   }, []);
 
   // 刪除專案
@@ -160,7 +171,7 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
     };
     
     updateProject(updatedProject);
-  }, [currentProject, updateProject]);
+  }, [currentProject, updateProject, pushUndo]);
 
   // 更新任務
   const updateTask = useCallback((updatedTask: Task) => {
@@ -183,7 +194,7 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
     };
     
     updateProject(updatedProject);
-  }, [currentProject, updateProject]);
+  }, [currentProject, updateProject, pushUndo]);
 
   // 刪除任務
   const deleteTask = useCallback((taskId: string) => {
@@ -206,7 +217,7 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
     };
     
     updateProject(updatedProject);
-  }, [currentProject, updateProject]);
+  }, [currentProject, updateProject, pushUndo]);
 
   // 新增資源
   const addResource = useCallback((resource: Resource) => {
@@ -226,7 +237,7 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
     };
     
     updateProject(updatedProject);
-  }, [currentProject, updateProject]);
+  }, [currentProject, updateProject, pushUndo]);
 
   // 更新資源
   const updateResource = useCallback((updatedResource: Resource) => {
@@ -249,7 +260,7 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
     };
     
     updateProject(updatedProject);
-  }, [currentProject, updateProject]);
+  }, [currentProject, updateProject, pushUndo]);
 
   // 刪除資源
   const deleteResource = useCallback((resourceId: string) => {
@@ -271,6 +282,62 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
       resources: currentProject.resources.filter(r => r.id !== resourceId)
     };
     
+    updateProject(updatedProject);
+  }, [currentProject, updateProject, pushUndo]);
+
+  // 新增成本紀錄
+  const addCost = useCallback((cost: CostRecord) => {
+    if (!currentProject) return;
+    const updatedProject = {
+      ...currentProject,
+      costs: [...currentProject.costs, cost]
+    };
+    updateProject(updatedProject);
+  }, [currentProject, updateProject]);
+
+  const updateCost = useCallback((cost: CostRecord) => {
+    if (!currentProject) return;
+    const updatedProject = {
+      ...currentProject,
+      costs: currentProject.costs.map(c => c.id === cost.id ? cost : c)
+    };
+    updateProject(updatedProject);
+  }, [currentProject, updateProject]);
+
+  const deleteCost = useCallback((id: string) => {
+    if (!currentProject) return;
+    const updatedProject = {
+      ...currentProject,
+      costs: currentProject.costs.filter(c => c.id !== id)
+    };
+    updateProject(updatedProject);
+  }, [currentProject, updateProject]);
+
+  // 風險紀錄
+  const addRisk = useCallback((risk: Risk) => {
+    if (!currentProject) return;
+    const updatedProject = {
+      ...currentProject,
+      risks: [...currentProject.risks, risk]
+    };
+    updateProject(updatedProject);
+  }, [currentProject, updateProject]);
+
+  const updateRisk = useCallback((risk: Risk) => {
+    if (!currentProject) return;
+    const updatedProject = {
+      ...currentProject,
+      risks: currentProject.risks.map(r => r.id === risk.id ? risk : r)
+    };
+    updateProject(updatedProject);
+  }, [currentProject, updateProject]);
+
+  const deleteRisk = useCallback((id: string) => {
+    if (!currentProject) return;
+    const updatedProject = {
+      ...currentProject,
+      risks: currentProject.risks.filter(r => r.id !== id)
+    };
     updateProject(updatedProject);
   }, [currentProject, updateProject]);
 
@@ -298,12 +365,7 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
     });
     
     // 更新狀態為已儲存
-    setProjectState(prev => ({
-      ...prev,
-      currentState: 'SAVED',
-      hasUnsavedChanges: false,
-      lastModified: new Date().toISOString()
-    }));
+    setProjectState(prev => transition(prev, 'save'));
     
     // 清空 undo/redo 堆疊
     setUndoStack([]);
@@ -318,8 +380,74 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
     });
   }, [currentProject]);
 
+  // 匯出專案為 .mpproj
+  const exportProjectFile = useCallback(async (fileName: string) => {
+    if (!currentProject) return;
+    await saveProjectToFile(createProjectPackage(currentProject), fileName);
+    setProjectState(prev => transition(prev, 'save'));
+  }, [currentProject]);
+
+  // 讀取 .mpproj 檔案
+  const openProjectFile = useCallback(async (file: File) => {
+    const pkg = await loadProjectFromFile(file);
+    setCurrentProject(pkg.project);
+    setProjects(prev => {
+      const other = prev.filter(p => p.id !== pkg.project.id);
+      return [...other, pkg.project];
+    });
+    setProjectState(prev => transition(prev, 'save'));
+    updateRecentProjects({
+      fileName: pkg.project.name,
+      filePath: file.name,
+      projectUUID: pkg.project.id,
+      isTemporary: false,
+    });
+  }, []);
+
+  // 從快照還原專案
+  const restoreSnapshot = useCallback(async (name: string) => {
+    const pkg = await loadSnapshot(name);
+    if (!pkg) return;
+    setCurrentProject(pkg.project);
+    setProjects(prev => {
+      const other = prev.filter(p => p.id !== pkg.project.id);
+      return [...other, pkg.project];
+    });
+    setProjectState(prev => transition(prev, 'restoreSnapshot'));
+    updateRecentProjects({
+      fileName: pkg.project.name,
+      filePath: '',
+      projectUUID: pkg.project.id,
+      isTemporary: false,
+    });
+  }, []);
+
+  const listSnapshots = useCallback(() => {
+    return getSnapshotsList();
+  }, []);
+
+  const removeSnapshot = useCallback((name: string) => {
+    deleteSnapshot(name);
+  }, []);
+
+  const initializeFromLatestSnapshot = useCallback(async () => {
+    const latest = getLatestSnapshot();
+    if (latest) {
+      await restoreSnapshot(latest.name);
+    } else {
+      createProject();
+    }
+  }, [restoreSnapshot, createProject]);
+
+  // 在啟動時嘗試從最近快照還原專案
+  useEffect(() => {
+    initializeFromLatestSnapshot();
+    // 僅在初始化階段執行一次
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Undo/Redo 相關函數
-  const pushUndo = useCallback((item: any) => {
+  const pushUndo = useCallback((item: UndoItem) => {
     setUndoStack(prev => [...prev.slice(0, 49), item]); // 限制堆疊大小為 50
     setRedoStack([]); // 清空 redo 堆疊
   }, []);
@@ -472,7 +600,19 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
       addResource,
       updateResource,
       deleteResource,
+      addCost,
+      updateCost,
+      deleteCost,
+      addRisk,
+      updateRisk,
+      deleteRisk,
       saveProject,
+      exportProjectFile,
+      openProjectFile,
+      restoreSnapshot,
+      listSnapshots,
+      removeSnapshot,
+      initializeFromLatestSnapshot,
       projectState,
       setProjectState,
       undoStack,
@@ -486,6 +626,7 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useProject = (): ProjectContextType => {
   const context = useContext(ProjectContext);
   if (!context) {

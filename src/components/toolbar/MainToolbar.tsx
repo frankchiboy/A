@@ -11,8 +11,7 @@ import {
   Calendar,
   Settings,
   HelpCircle,
-  FileDown,
-  FileUp
+  FileDown
 } from 'lucide-react';
 import { FileDialog } from '../modals/FileDialog';
 import { TaskDialog } from '../modals/TaskDialog';
@@ -39,11 +38,11 @@ export const MainToolbar: React.FC = () => {
     setDialogOpen({ file: type });
   };
   
-  const openTaskDialog = (mode: 'create' | 'edit', taskId?: string) => {
+  const openTaskDialog = (mode: 'create' | 'edit') => {
     setDialogOpen({ task: mode });
   };
-  
-  const openResourceDialog = (mode: 'create' | 'edit', resourceId?: string) => {
+
+  const openResourceDialog = (mode: 'create' | 'edit') => {
     setDialogOpen({ resource: mode });
   };
   

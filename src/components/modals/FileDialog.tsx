@@ -1,14 +1,13 @@
 import React, { useState, useRef } from 'react';
 import { useProject } from '../../context/ProjectContext';
-import { 
-  Save, 
-  FileUp, 
-  FilePlus, 
-  FileQuestion, 
-  X, 
-  AlertTriangle, 
-  FileDown, 
-  FolderOpen 
+import {
+  Save,
+  FileUp,
+  FilePlus,
+  X,
+  AlertTriangle,
+  FileDown,
+  FolderOpen
 } from 'lucide-react';
 import { 
   saveProjectToFile, 
@@ -145,7 +144,7 @@ export const FileDialog: React.FC<FileDialogProps> = ({ isOpen, onClose, dialogT
     }
   };
   
-  const openRecentProject = async (filePath: string, projectUUID: string) => {
+  const openRecentProject = async (filePath: string) => {
     // 這裡通常需要通過檔案系統API開啟檔案
     // 由於 Web 環境限制，這裡只是展示功能，實際應用中需要配合桌面環境的能力
     alert(`將開啟最近專案: ${filePath}`);
@@ -242,7 +241,7 @@ export const FileDialog: React.FC<FileDialogProps> = ({ isOpen, onClose, dialogT
                     <div 
                       key={index}
                       className="p-3 hover:bg-slate-50 cursor-pointer flex items-center"
-                      onClick={() => openRecentProject(project.filePath, project.projectUUID)}
+                      onClick={() => openRecentProject(project.filePath)}
                     >
                       <FileDown size={16} className="text-slate-400 mr-2" />
                       <div className="flex-1 truncate">

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useProject } from '../context/ProjectContext';
 import { Calendar, ArrowLeft, ArrowRight, Plus, Filter, ChevronDown } from 'lucide-react';
+import { Task } from '../types/projectTypes';
 
 export const GanttView: React.FC = () => {
   const { currentProject } = useProject();
@@ -51,12 +52,8 @@ export const GanttView: React.FC = () => {
   // 獲取日期範圍
   const dateRange = calculateDateRange();
   
-  // 計算專案的開始和結束日期
-  const projectStart = new Date(currentProject.startDate);
-  const projectEnd = new Date(currentProject.endDate);
-  
   // 計算項目在甘特圖上的位置和長度
-  const calculateTaskPosition = (task: any) => {
+  const calculateTaskPosition = (task: Task) => {
     const taskStart = new Date(task.startDate);
     const taskEnd = new Date(task.endDate);
     
@@ -129,11 +126,6 @@ export const GanttView: React.FC = () => {
     setCurrentDate(newDate);
   };
   
-  // 獲取資源名稱
-  const getResourceName = (resourceId: string) => {
-    const resource = currentProject.resources.find(r => r.id === resourceId);
-    return resource ? resource.name : '未分配';
-  };
   
   // 計算今天在甘特圖中的位置
   const calculateTodayPosition = () => {

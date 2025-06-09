@@ -14,7 +14,7 @@ import {
   FileUp, 
   Edit 
 } from 'lucide-react';
-import { Task, Resource } from '../../types/projectTypes';
+import { Task } from '../../types/projectTypes';
 import { createTask } from '../../utils/projectUtils';
 
 interface TaskDialogProps {

@@ -10,6 +10,8 @@ export interface Project {
   resources: Resource[];
   milestones: Milestone[];
   teams: Team[];
+  costs: CostRecord[];
+  risks: Risk[];
   budget: Budget;
   createdAt: string;
   updatedAt: string;
@@ -93,6 +95,18 @@ export interface BudgetCategory {
   actual: number;
 }
 
+export interface CostRecord {
+  id: string;
+  taskId: string;
+  amount: number;
+  category: string;
+  currency: string;
+  date: string;
+  invoiceId: string;
+  status: 'pending' | 'paid';
+  note: string;
+}
+
 export interface Attachment {
   id: string;
   name: string;
@@ -131,11 +145,26 @@ export interface DashboardMetrics {
   };
 }
 
+export type ProjectStateName =
+  | 'UNINITIALIZED'
+  | 'UNTITLED'
+  | 'EDITING'
+  | 'DIRTY'
+  | 'SAVED'
+  | 'CLOSING';
+
 export interface ProjectState {
-  currentState: 'UNINITIALIZED' | 'UNTITLED' | 'EDITING' | 'DIRTY' | 'SAVED' | 'CLOSING';
+  currentState: ProjectStateName;
   hasUnsavedChanges: boolean;
   isUntitled: boolean;
   lastModified: string;
   autosaveTimer: 'active' | 'inactive';
   openedFrom: 'manual' | 'recovery' | 'template' | null;
+}
+
+export interface UndoItem {
+  type: string;
+  targetId: string;
+  beforeState: unknown;
+  afterState: unknown;
 }

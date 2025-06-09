@@ -2,10 +2,14 @@ import React from 'react';
 import { 
   LayoutDashboard, 
   GanttChart, 
-  CheckSquare, 
-  Users, 
-  BarChart4, 
-  Settings, 
+  CheckSquare,
+  Users,
+  Coins,
+  AlertTriangle,
+  Archive,
+  Clock,
+  BarChart4,
+  Settings,
   PlusCircle,
   Anchor,
   Menu,
@@ -20,13 +24,17 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView }) => {
   const [expanded, setExpanded] = React.useState(true);
-  const { currentProject, projects } = useProject();
+  const { currentProject } = useProject();
 
   const navItems = [
     { id: 'dashboard', label: '儀表板', icon: <LayoutDashboard size={20} /> },
     { id: 'gantt', label: '甘特圖', icon: <GanttChart size={20} /> },
     { id: 'tasks', label: '任務', icon: <CheckSquare size={20} /> },
     { id: 'resources', label: '資源', icon: <Users size={20} /> },
+    { id: 'costs', label: '成本', icon: <Coins size={20} /> },
+    { id: 'risks', label: '風險', icon: <AlertTriangle size={20} /> },
+    { id: 'snapshots', label: '備份', icon: <Archive size={20} /> },
+    { id: 'recent', label: '最近', icon: <Clock size={20} /> },
     { id: 'reports', label: '報告', icon: <BarChart4 size={20} /> },
     { id: 'settings', label: '設定', icon: <Settings size={20} /> },
   ];

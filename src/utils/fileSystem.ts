@@ -1,7 +1,7 @@
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { v4 as uuidv4 } from 'uuid';
-import { Project, Task, Resource, Milestone, Team, Budget } from '../types/projectTypes';
+import { Project, Task, Resource, Milestone, Team, Budget, CostRecord, Risk } from '../types/projectTypes';
 
 // 專案檔案結構類型
 export interface ProjectPackage {
@@ -11,6 +11,8 @@ export interface ProjectPackage {
   resources: Resource[];
   milestones: Milestone[];
   teams: Team[];
+  costs: CostRecord[];
+  risks: Risk[];
   budget: Budget;
   attachments: Attachment[];
 }
@@ -34,6 +36,14 @@ export interface Attachment {
   size: number;
   uploadedBy: string;
   uploadedAt: string;
+}
+
+export interface SnapshotEntry {
+  id: string;
+  name: string;
+  projectId: string;
+  createdAt: string;
+  type: string;
 }
 
 // 獲取當前平台
@@ -61,6 +71,8 @@ export const createProjectPackage = (project: Project): ProjectPackage => {
     resources: project.resources || [],
     milestones: project.milestones || [],
     teams: project.teams || [],
+    costs: project.costs || [],
+    risks: project.risks || [],
     budget: project.budget || {
       total: 0,
       spent: 0,
@@ -88,6 +100,8 @@ export const saveProjectToFile = async (projectPackage: ProjectPackage, fileName
     zip.file('milestones.json', JSON.stringify(projectPackage.milestones, null, 2));
     zip.file('teams.json', JSON.stringify(projectPackage.teams, null, 2));
     zip.file('budget.json', JSON.stringify(projectPackage.budget, null, 2));
+    zip.file('costs.json', JSON.stringify(projectPackage.costs, null, 2));
+    zip.file('risklog.json', JSON.stringify(projectPackage.risks, null, 2));
     
     // 附件資料夾
     const attachments = zip.folder('attachments');
@@ -125,6 +139,8 @@ export const loadProjectFromFile = async (file: File): Promise<ProjectPackage> =
     const milestonesJson = await zipContent.file('milestones.json')?.async('text') || '[]';
     const teamsJson = await zipContent.file('teams.json')?.async('text') || '[]';
     const budgetJson = await zipContent.file('budget.json')?.async('text') || '{}';
+    const costsJson = await zipContent.file('costs.json')?.async('text') || '[]';
+    const risksJson = await zipContent.file('risklog.json')?.async('text') || '[]';
     
     // 解析附件
     const attachments: Attachment[] = [];
@@ -158,6 +174,8 @@ export const loadProjectFromFile = async (file: File): Promise<ProjectPackage> =
       resources: JSON.parse(resourcesJson),
       milestones: JSON.parse(milestonesJson),
       teams: JSON.parse(teamsJson),
+      costs: JSON.parse(costsJson),
+      risks: JSON.parse(risksJson),
       budget: JSON.parse(budgetJson),
       attachments
     };
@@ -214,7 +232,7 @@ export const saveAutoSnapshot = async (projectPackage: ProjectPackage): Promise<
 };
 
 // 獲取快照列表
-export const getSnapshotsList = (): { id: string; name: string; projectId: string; createdAt: string; type: string }[] => {
+export const getSnapshotsList = (): SnapshotEntry[] => {
   const snapshotsIndexKey = 'project_snap_index';
   return JSON.parse(localStorage.getItem(snapshotsIndexKey) || '[]');
 };
@@ -235,6 +253,8 @@ export const loadSnapshot = async (snapshotName: string): Promise<ProjectPackage
     const milestonesJson = await zip.file('milestones.json')?.async('text') || '[]';
     const teamsJson = await zip.file('teams.json')?.async('text') || '[]';
     const budgetJson = await zip.file('budget.json')?.async('text') || '{}';
+    const costsJson = await zip.file('costs.json')?.async('text') || '[]';
+    const risksJson = await zip.file('risklog.json')?.async('text') || '[]';
     
     return {
       manifest: JSON.parse(manifestJson),
@@ -243,6 +263,8 @@ export const loadSnapshot = async (snapshotName: string): Promise<ProjectPackage
       resources: JSON.parse(resourcesJson),
       milestones: JSON.parse(milestonesJson),
       teams: JSON.parse(teamsJson),
+      costs: JSON.parse(costsJson),
+      risks: JSON.parse(risksJson),
       budget: JSON.parse(budgetJson),
       attachments: []
     };
@@ -259,7 +281,7 @@ export const deleteSnapshot = (snapshotName: string): void => {
     const snapshotsIndex = JSON.parse(localStorage.getItem(snapshotsIndexKey) || '[]');
     
     // 從索引中移除
-    const updatedIndex = snapshotsIndex.filter((snap: any) => snap.name !== snapshotName);
+    const updatedIndex = (snapshotsIndex as SnapshotEntry[]).filter((snap: SnapshotEntry) => snap.name !== snapshotName);
     localStorage.setItem(snapshotsIndexKey, JSON.stringify(updatedIndex));
     
     // 從 localStorage 中移除快照資料
@@ -307,4 +329,42 @@ export const updateRecentProjects = (project: { fileName: string; filePath: stri
   
   // 儲存更新後的列表
   saveRecentProjects(recentProjects);
+};
+
+// 取得最新的快照（依建立時間排序）
+export const getLatestSnapshot = (): SnapshotEntry | null => {
+  const list = getSnapshotsList();
+  if (list.length === 0) return null;
+  const sorted = [...list].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  return sorted[0];
+};
+
+// 匯出成本紀錄為 CSV
+export const exportCostsToCSV = (costs: CostRecord[], fileName: string): void => {
+  const header = '日期,金額,類別,狀態,備註\n';
+  const rows = costs
+    .map(c => `${c.date},${c.amount},${c.category},${c.status},"${c.note.replace(/"/g, '""')}"`)
+    .join('\n');
+  const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8' });
+  saveAs(blob, `${fileName}.csv`);
+};
+
+// 匯出風險紀錄為 CSV
+export const exportRisksToCSV = (risks: Risk[], fileName: string): void => {
+  const header = 'ID,標題,描述,嚴重度,機率,狀態\n';
+  const rows = risks
+    .map(r => `${r.id},${r.name},"${r.description.replace(/"/g, '""')}",${r.impact},${r.probability},${r.status}`)
+    .join('\n');
+  const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8' });
+  saveAs(blob, `${fileName}.csv`);
+};
+
+// 匯出任務清單為 CSV
+export const exportTasksToCSV = (tasks: Task[], fileName: string): void => {
+  const header = 'ID,名稱,開始日期,結束日期,狀態,負責人\n';
+  const rows = tasks
+    .map(t => `${t.id},${t.name},${t.startDate},${t.endDate},${t.status},${t.assignedTo.join(';')}`)
+    .join('\n');
+  const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8' });
+  saveAs(blob, `${fileName}.csv`);
 };
